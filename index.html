@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exnoscan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            background-color: #000000;
+            color: #f5f5f7;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: rgba(28, 28, 30, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 1.5rem;
+            position: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-close {
+            background: none;
+            border: none;
+            color: #86868b;
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-close:hover {
+            color: #f5f5f7;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-close svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .sidebar-nav a {
+            color: #86868b;
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            font-weight: 400;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-nav a:hover {
+            color: #f5f5f7;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            color: #86868b;
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-footer a:hover {
+            color: #f5f5f7;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .sidebar-footer svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Menu Toggle Button */
+        .menu-toggle {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            background: rgba(28, 28, 30, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f5f5f7;
+            cursor: pointer;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            z-index: 50;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(58, 58, 60, 0.9);
+        }
+
+        .menu-toggle svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 90;
+        }
+
+        .overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 720px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Hero */
+        .hero {
+            margin-bottom: 5rem;
+        }
+
+        .hero-title {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .hero-title h1 {
+            font-size: 4.5rem;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            color: #ffffff;
+            display: inline;
+        }
+
+        .lightning-icon {
+            width: 72px;
+            height: 72px;
+            position: absolute;
+            right: -84px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #86868b;
+            letter-spacing: -0.01em;
+            margin-bottom: 1.5rem;
+        }
+
+        .description {
+            font-size: 1.125rem;
+            color: #6e6e73;
+            max-width: 480px;
+            margin: 0 auto;
+            line-height: 1.5;
+            letter-spacing: -0.01em;
+        }
+
+        /* Products Section */
+        .products-section {
+            margin-bottom: 4rem;
+        }
+
+        .products-section h2 {
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6e6e73;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .products-grid {
+            display: flex;
+            gap: 1.25rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .product-card {
+            background: #0a0a0a;
+            border: 1px solid #1c1c1e;
+            border-radius: 16px;
+            padding: 2rem 2.5rem;
+            min-width: 200px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .product-card:hover {
+            border-color: #2c2c2e;
+            transform: translateY(-2px);
+        }
+
+        .product-card.coming-soon {
+            opacity: 0.5;
+        }
+
+        .product-card.coming-soon:hover {
+            transform: none;
+        }
+
+        .product-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 1.25rem;
+            color: #86868b;
+        }
+
+        .product-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .product-card h3 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #f5f5f7;
+            margin-bottom: 0.375rem;
+            letter-spacing: -0.01em;
+        }
+
+        .product-card p {
+            font-size: 0.875rem;
+            color: #86868b;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .product-card .status {
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .product-card .status.active {
+            color: #30d158;
+        }
+
+        .product-card .status.soon {
+            color: #6e6e73;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.75rem;
+            color: #48484a;
+            letter-spacing: -0.01em;
+        }
+
+        @media (max-width: 640px) {
+            .hero-title h1 {
+                font-size: 2.75rem;
+            }
+            .lightning-icon {
+                width: 48px;
+                height: 48px;
+                right: -56px;
+            }
+            .tagline {
+                font-size: 1.25rem;
+            }
+            .product-card {
+                min-width: 160px;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+    </button>
+
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Close menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#">About</a>
+                <a href="#">Products</a>
+                <a href="#">Amoranio</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="https://x.com/amoranio" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    @amoranio
+                </a>
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="container">
+                <div class="hero">
+                    <div class="hero-title">
+                        <h1>Exnoscan</h1>
+                        <svg class="lightning-icon" viewBox="0 0 24 24" fill="#FFD60A" stroke="#000000" stroke-width="2.5" stroke-linejoin="round">
+                            <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/>
+                        </svg>
+                    </div>
+                    <p class="tagline">Gain better visibility</p>
+                    <p class="description">
+                        Security-focused tools designed to protect, analyze, and give you complete clarity over your digital environment.
+                    </p>
+                </div>
+
+                <div class="products-section">
+                    <h2>Products</h2>
+                    <div class="products-grid">
+                        <div class="product-card">
+                            <div class="product-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                                </svg>
+                            </div>
+                            <h3>clearQR</h3>
+                            <p>Secure QR scanning with threat detection</p>
+                            <span class="status active">Available</span>
+                        </div>
+                        <div class="product-card coming-soon">
+                            <div class="product-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                    <path d="M2 17l10 5 10-5"/>
+                                    <path d="M2 12l10 5 10-5"/>
+                                </svg>
+                            </div>
+                            <h3>Threat Intel</h3>
+                            <p>Real-time threat intelligence feeds</p>
+                            <span class="status soon">Coming Soon</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                &copy; 2026 Exnoscan. All rights reserved.
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('visible');
+        }
+    </script>
+</body>
+</html>
